@@ -9,6 +9,7 @@ import contextlib
 import io
 import os
 import re
+import shutil
 
 import streamlit as st
 import pandas as pd
@@ -128,6 +129,33 @@ def run_captured(fn, *args, **kwargs):
     return result, buf.getvalue()
 
 
+def reset_master_file():
+    """마스터 파일과 그로부터 파생된 산출물(그래프·이메일·공문자료·보고서초안)을 모두 지우고
+    진행 상황을 초기 상태로 되돌린다 — 잘못된 파일을 업로드해 마스터 파일이 잘못
+    만들어졌을 때, 처음부터 다시 시작할 방법이 없었던 문제를 해결하기 위함."""
+    master_path = st.session_state.master_path
+    if os.path.exists(master_path):
+        os.remove(master_path)
+    for name in ("그래프", "이메일", "공문자료", "보고서초안"):
+        d = derived_dir(name)
+        if os.path.isdir(d):
+            shutil.rmtree(d)
+
+    st.session_state.stage_status = {s["key"]: "not_started" for s in STAGES}
+    st.session_state.current_stage = "collect"
+    st.session_state.merge_log_text = ""
+    st.session_state.validation_log_text = ""
+    st.session_state.issues = {}
+    st.session_state.revalidate_log_text = ""
+    st.session_state.acknowledged_issues = set()
+    st.session_state.review_saved_path = ""
+    st.session_state.draft_previews = {}
+    st.session_state.metrics_log_text = ""
+    st.session_state.prepare_log_text = ""
+    st.session_state.draft_log_text = ""
+    st.session_state.confirm_reset = False
+
+
 # ===========================================================================
 # 사이드바
 # ===========================================================================
@@ -160,6 +188,36 @@ def render_sidebar():
     st.sidebar.caption(f"취합된 월: **{', '.join(months) if months else '없음'}**")
     with st.sidebar.expander("⚙️ 설정"):
         st.session_state.master_path = st.text_input("마스터 파일 경로", value=st.session_state.master_path)
+
+        master_path = st.session_state.master_path
+        if os.path.exists(master_path):
+            with open(master_path, "rb") as f:
+                st.download_button(
+                    "📥 마스터 파일 다운로드",
+                    f.read(),
+                    file_name=os.path.basename(master_path),
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True,
+                )
+        else:
+            st.caption("아직 마스터 파일이 없습니다 — Step 1에서 취합을 먼저 실행하세요.")
+
+        st.divider()
+        st.caption(
+            "⚠️ **위험 구역** — 잘못된 파일을 업로드해 마스터 파일이 잘못 만들어졌을 때, "
+            "처음부터 다시 시작하려면 아래에서 초기화하세요. 마스터 파일과 지금까지 생성된 "
+            "그래프·이메일·공문자료·보고서초안이 모두 삭제되고, 되돌릴 수 없습니다. "
+            "필요하면 위 다운로드 버튼으로 먼저 백업해 두세요."
+        )
+        confirm_reset = st.checkbox("삭제될 내용을 확인했고, 초기화에 동의합니다", key="confirm_reset")
+        if st.button(
+            "🗑️ 마스터 파일 초기화",
+            type="primary",
+            use_container_width=True,
+            disabled=not confirm_reset,
+        ):
+            reset_master_file()
+            st.rerun()
 
 
 # ===========================================================================
