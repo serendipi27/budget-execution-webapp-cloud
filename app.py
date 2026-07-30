@@ -785,10 +785,23 @@ def page_review():
         st.caption("모든 체크리스트 항목을 확인해야 최종 저장할 수 있습니다.")
 
     if st.session_state.get("review_saved_path"):
-        st.success("최종 보고서가 저장되었습니다. 아래 위치를 확인해 주세요.", icon="✅")
-        st.code(st.session_state.review_saved_path, language=None)
+        saved_path = st.session_state.review_saved_path
+        st.success("최종 보고서가 저장되었습니다. 아래 버튼으로 파일을 내려받으세요.", icon="✅")
+        # 서버(클라우드 컨테이너 또는 로컬)의 파일 경로를 화면에 그대로 보여주는 방식은
+        # Streamlit Cloud에서는 사용자가 접근할 수 없는 서버 내부 경로라 의미가 없다
+        # (로컬 Mac에서 직접 실행할 때만 서버=내 컴퓨터라 우연히 통했던 것).
+        # st.download_button은 서버 위치와 무관하게 브라우저를 통해 사용자의 로컬
+        # 다운로드 폴더로 파일을 내려받게 해준다.
+        with open(saved_path, "r", encoding="utf-8") as f:
+            saved_content = f.read()
+        st.download_button(
+            "📥 최종 보고서 다운로드",
+            saved_content,
+            file_name=os.path.basename(saved_path),
+            mime="text/markdown",
+        )
         st.caption(
-            "조직의 전자결재 시스템에 이 파일 내용을 옮겨 결재를 상신하세요. "
+            "다운로드한 파일 내용을 조직의 전자결재 시스템에 옮겨 결재를 상신하세요. "
             "다음 달에는 새 부서 제출 파일로 다시 Step 1부터 시작하면 됩니다."
         )
 

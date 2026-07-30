@@ -23,6 +23,7 @@ from openai import OpenAI
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
 # 노트북 셀은 load_dotenv() 호출 없이 os.environ.get(...)만 썼다 — Jupyter를 이미
 # .env가 로드된 셸에서 띄웠을 때만 우연히 동작했을 가능성이 높다. 독립 실행되는
@@ -767,7 +768,15 @@ COLOR_BASELINE = "#c3c2b7"
 COLOR_BLUE = "#2a78d6"
 COLOR_RED = "#e34948"
 
-matplotlib.rcParams["font.family"] = "AppleGothic"
+# macOS의 AppleGothic은 Streamlit Community Cloud(Linux 컨테이너)에는 없어서
+# 그래프의 한글이 네모(□)로 깨진다. OS에 의존하지 않도록 나눔고딕을 폰트 파일째로
+# 저장소에 함께 담아 등록한다(fonts/LICENSE.txt — SIL OFL 1.1).
+_KOREAN_FONT_PATH = os.path.join(os.path.dirname(__file__), "fonts", "NanumGothic.ttf")
+if os.path.exists(_KOREAN_FONT_PATH):
+    font_manager.fontManager.addfont(_KOREAN_FONT_PATH)
+    matplotlib.rcParams["font.family"] = font_manager.FontProperties(fname=_KOREAN_FONT_PATH).get_name()
+else:
+    matplotlib.rcParams["font.family"] = "AppleGothic"
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 

@@ -1,0 +1,8 @@
+NanumGothic.ttf — 나눔고딕 (Naver)
+Distributed under the SIL Open Font License 1.1.
+https://hangeul.naver.com/2021/fonts/nanum
+https://scripts.sil.org/OFL
+
+Bundled here so the Streamlit app renders Korean text correctly on any
+platform (Streamlit Community Cloud's Linux containers do not have a
+Korean system font installed, unlike macOS's AppleGothic).
