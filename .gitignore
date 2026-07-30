@@ -1,0 +1,7 @@
+input_data/
+result/
+webapp_data/
+__pycache__/
+.DS_Store
+.env
+*.pyc
