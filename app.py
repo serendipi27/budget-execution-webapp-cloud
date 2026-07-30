@@ -210,14 +210,13 @@ def render_sidebar():
             "필요하면 위 다운로드 버튼으로 먼저 백업해 두세요."
         )
         confirm_reset = st.checkbox("삭제될 내용을 확인했고, 초기화에 동의합니다", key="confirm_reset")
-        if st.button(
+        st.button(
             "🗑️ 마스터 파일 초기화",
             type="primary",
             use_container_width=True,
             disabled=not confirm_reset,
-        ):
-            reset_master_file()
-            st.rerun()
+            on_click=reset_master_file,
+        )
 
 
 # ===========================================================================
